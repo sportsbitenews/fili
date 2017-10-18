@@ -9,8 +9,8 @@
     * [度量命名](#度量命名)
     * [建造和加载度量](#建造和加载度量)
 - [自定义度量](#自定义度量)
-    * [自定义 Makers](#自定义Makers)
-    * [映射（Mappers）](#映射（Mappers）)
+    * [自定义建造器](#自定义建造器)
+    * [映射](#映射)
     * [高级度量](#高级度量)   
 
 
@@ -256,12 +256,12 @@ protected LogicalMetric makeInner(String metricName, List<String> dependentMetri
     return new LogicalMetric(query, mapper, metricName);
     ```
 
-### 映射（Mappers）###
+### 映射 ###
 
-映射是 [`ResultSetMapper`][resultSetMapper] 的子类（subclass），用来对返回结果的每一行进行后期 Druid 处理。Fili 遍历每一个
-`LogicalMetric`，将每个的映射组合成一个 function chain，用这样的方式来组建后 Druid 的处理链。Druid 返回数据结果后，数据被送
-入 chain 的每一个单元，单元顺序由查询语句中的度量定义顺序决定。
-x
+映射（Mappers）是 [`ResultSetMapper`][resultSetMapper] 的子类（subclass），用来对返回结果的每一行进行后期 Druid 处理。Fili
+遍历每一个`LogicalMetric`，将每个的映射组合成一个 function chain，用这样的方式来组建后 Druid 的处理链。Druid 返回数据结果后，
+数据被送入 chain 的每一个单元，单元顺序由查询语句中的度量定义顺序决定。
+
 如果要定义一个 `Mapper`，您需要 override 两个 methods: `map(Result result, Schema schema)` 和 `map(Schema schema)`。第一
 个用来处理修改返回数据的某一行结果，第二个用来处理修改结果的 schema。
 
