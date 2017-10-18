@@ -96,7 +96,7 @@ loading tables. The [`WikiDruidMetricName`][wikiDruidMetricName] enum provides a
 ### Building and Loading Metrics ###
 
 Next, you need to write the code that builds the metrics and loads them into the `MetricDictionary` at Fili start up. To
-do so, you need to implement the [MetricLoader][metricLoader] interface, which has a single method 
+do so, you need to implement the [`MetricLoader`][metricLoader] interface, which has a single method 
 `loadMetricDictionary`.
 
 For example, suppose you want to register the three page view metrics introduced in [Overview](#overview).

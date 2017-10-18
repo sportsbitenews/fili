@@ -5,47 +5,47 @@
 -----------------
 
 - [概述](#概述)
-- [加载 Metrics](#加载Metrics)
-    * [Metrics 命名](#Metrics命名)
-    * [建造和加载 Metrics](#建造和加载Metrics)
-- [自定义 Metrics](#自定义Metrics)
+- [加载度量](#加载度量)
+    * [度量命名](#度量命名)
+    * [建造和加载度量](#建造和加载度量)
+- [自定义度量](#自定义度量)
     * [自定义 Makers](#自定义Makers)
     * [映射（Mappers）](#映射（Mappers）)
-    * [高级 Metrics](#高级Metrics)   
+    * [高级度量](#高级度量)   
 
 
 概述
 --------
 
-Fili 的数据度量（metrics）包括 Druid metrics 聚合和 Fili metrics 聚合，两者涵盖简单的数学运算，到复杂的聚合和后聚合操作。
+Fili 的数据度量（metrics）包括 Druid 度量值聚合和 Fili 度量值聚合，两者涵盖简单的数学运算，到复杂的聚合和后聚合操作。
 
 
-Metrics 分两类:
+度量分两类:
 
-1. **一阶（First order）metrics** 直接聚合 Druid 的 metric 数据。例如，Fili 的两个 metrics `page_views` 和
-`additive_page_views`，分别计算和他们对应的两个 Druid metrics 的 [`longSums`][druid aggregations]：`druid_page_views` 和
+1. **一阶（First order）度量** 直接聚合 Druid 的度量值/数据。例如，Fili 的两个度量 `page_views` 和
+`additive_page_views`，分别计算和他们对应的两个 Druid 度量的 [`longSums`][druid aggregations]：`druid_page_views` 和
 `druid_additive_page_views`。  
 
-2. **高阶（Higher order）metrics** 由其它 metrics 计算得来。例如，Fili 里面的 `total_page_views` metric，是由
-`page_views` 和 `additive_page_views` 之和得来。
+2. **高阶（Higher order）度量** 由其它度量值计算得来。例如，Fili 里面的 `total_page_views` 度量，是由 `page_views` 和
+`additive_page_views` 之和得来的。
 
 
-加载Metrics
+加载度量
 ---------------
 
-Fili 用 [`MetricDictionary`][metricDictionary] 将 metrics 名称映射到实际的 metrics 对象（object），所以您需要定义两项内容：
+Fili 用 [`MetricDictionary`][metricDictionary] 将度量名称映射到实际的度量对象（object），所以您需要定义两项内容：
 
-1. metrics 名称
+1. 度量名称
 
-2. 实际 metrics 对象（object）
+2. 实际度量对象（object）
 
-### Metrics命名 ###
+### 度量命名 ###
 
-您可以用实现 [`ApiMetricName`][apiMetricName] interface 的方式来命名 metrics。该 Interface 有两种功能：
+您可以用实现 [`ApiMetricName`][apiMetricName] interface 的方式来命名度量。该 interface 有两种功能：
 
 1. 提供一个任何地方都适用的统一名称，方便其他地方（例如[`BaseTableLoader`][baseTableLoader]）使用。
 
-2. 检查该 metric 是否适用于某个时间精度（[`TimeGrain`][timeGrain]）
+2. 检查该度量是否适用于某个时间精度（[`TimeGrain`][timeGrain]）
 
 例如，以下是一个 enum:
 
@@ -75,22 +75,22 @@ public enum ExampleApiMetricName implements ApiMetricName {
 }
 ```
 
-该 enum 里面的所有 metrics 适用于以“天”为单位或者时间范围更大的（例如“周”，“月”，“年”等等）时间精度。您也可以参见
+该 enum 里面的所有度量适用于以“天”为单位或者时间范围更大的（例如“周”，“月”，“年”等等）时间精度。您也可以参见
 [Fili-wikipedia-example][fili-wikipedia-example]里面的[`WikiApiMetricName`][wikiApiMetricName]，这是一个更为完整的例子。
 
-另外，您还需要把相对应的 Druid metrics 名称告诉 Fili。方法是实现 [`FieldName`][fieldName]interface，实现方法和
-`ApiMetricName` 类似（区别是Druid metric 不需要时间精度的最小范围）。 
+另外，您还需要把相对应的 Druid 度量名称告诉 Fili。方法是实现 [`FieldName`][fieldName]interface，实现方法和
+`ApiMetricName` 类似（区别是 Druid 度量不需要时间精度的最小范围）。 
 
-实现 `FieldName` 之后，您就能将 Druid metrics 放入 [`BaseTableLoader`][baseTableLoader]，这个 loader 会用 Druid 这些
-metrics 去配置实际数据列表（physical tables）。具体的加载数据列表方法请参见 [`Binding Resources`](binding-resources)。
+实现 `FieldName` 之后，您就能将 Druid 度量放入 [`BaseTableLoader`][baseTableLoader]，这个 loader 会用这些 Druid 度量去配置
+实际数据列表（physical tables）。具体的加载数据列表方法请参见 [`Binding Resources`](binding-resources)。
 [`WikiDruidMetricName`][wikiDruidMetricName] 自带了一个例子。
 
-### 建造和加载Metrics ###
+### 建造和加载度量 ###
 
-下一步，您需要编写代码将命名好的 metrics 在 Fili 启动的时候建造并加载到 `MetricDictionary`。要完成这一步，您需要实现
-[MetricLoader][metricLoader] interface，这个  interface 包含了一个 method 叫做 `loadMetricDictionary`。
+下一步，您需要编写代码将命名好的度量在 Fili 启动的时候建造并加载到 `MetricDictionary`。要完成这一步，您需要实现
+[`MetricLoader`][metricLoader] interface，这个 interface 包含了一个方法（method）叫做 `loadMetricDictionary`。
 
-举个例子，如果你想放入[概述](#概述)中提到的三个页面访问 metrics，那么 `loadMetricDictionary` method 的实现方式类似于以下代码：
+举个例子，如果你想放入[概述](#概述)中提到的三个页面访问度量，那么 `loadMetricDictionary` method 的实现方式类似于以下代码：
 
 ```java
 private MetricMaker longSumMaker;
@@ -106,8 +106,8 @@ public void loadMetricDictionary(MetricDictionary metricDictionary) {
 
 #### MetricMakers ####
 
-[`MetricMaker`][metricMaker] 是用来搭建 [`LogicalMetric`][logicalMetric] 的。`LogicalMetric` 实际上是一个特定的 Druid 访
-问语句，加上一个 [`Mapper`](#mappers) 用来做 Druid 访问后期处理。例如，[`longSumMaker`][longSumMaker] 负责写一个
+[`MetricMaker`][metricMaker] 是用来搭建 [`LogicalMetric`][logicalMetric] 的。`LogicalMetric` 实际上是一个特定的 Druid 查询
+语句，加上一个 [`Mapper`](#mappers) 用来做 Druid 访问后期处理。例如，[`longSumMaker`][longSumMaker] 负责写一个
 [`longSum`][druid aggregations] 聚合, [`sumMaker`][arithmeticMaker] 则是用相加运算写一个
 [arithmetic post aggregation][druid post-aggregations]。
 
@@ -122,8 +122,8 @@ private void buildMetricMakers(MetricDictionary metricDictionary) {
 
 #### MetricInstances ####
 
-[MetricInstance][metricInstance] 使用 `MetricMaker` 来创建一个 metric。在上一个举例里，我们有三个 metrics：`page_views`，
-`additive_page_views`，`total_page_views`。这样一来，每一个 metric 都需要一个 `MetricInstance`：
+[MetricInstance][metricInstance] 使用 `MetricMaker` 来创建一个 metric。在上一个举例里，我们有三个度量：`page_views`，
+`additive_page_views`，`total_page_views`。这样一来，每一个度量都需要一个 `MetricInstance`：
 
 ```java
 private List<MetricInstance> buildMetricInstances(MetricDictionary metricDictionary) {
@@ -135,13 +135,12 @@ private List<MetricInstance> buildMetricInstances(MetricDictionary metricDiction
 }
 ```
 
-注意，如果你的 metrics 和其他基本 metrics 存在依赖关系的话，就要在这里指明。`page_views` 和 `additive_page_views` 都是 Druid
-metrics, 他们自然而然地依赖于对应的 druid metrics。同时，`total_page_views` 是通过 `additive_page_views` 和 `page_views`
-计算得来的（依赖）。
+注意，如果你的度量和其他基本度量存在依赖（相关）关系的话，就要在这里指明。`page_views` 和 `additive_page_views` 都是 Druid度量, 
+他们自然而然地依赖于对应的 druid 度量。同时，`total_page_views` 是通过 `additive_page_views` 和 `page_views`计算得来的。
 
-#### 创建并将 Metrics 加载到 MetricDictionary ####
+#### 创建并将度量加载到 MetricDictionary ####
 
-最后，metrics 要被加载到 `MetricDictionary`。在我们的例子里，我们使用 `addToMetricDictionary` method：
+最后，度量要被加载到 `MetricDictionary`。在我们的例子里，我们使用 `addToMetricDictionary` method：
 
 ```java
 private void addToMetricDictionary(MetricDictionary metricDictionary, List<MetricInstance> metrics) {
@@ -149,15 +148,15 @@ private void addToMetricDictionary(MetricDictionary metricDictionary, List<Metri
 }
 ```
 
-[Fili wikipedia example][fili-wikipedia-example] 带有一个基本的 metric 加载器叫做[`WikiMetricLoader`][wikiMetricLoader]。
+[Fili wikipedia example][fili-wikipedia-example] 带有一个基本的度量加载器叫做[`WikiMetricLoader`][wikiMetricLoader]。
 
 另一个不可或缺的是您需要部署之前定义好的 `MetricLoader`。具体方法请详见 [Binding Resources](binding-resources) 。
 
-自定义Metrics
+自定义度量
 --------------
 
-大多数自定义 metrics 都是在已经定义好的 metrics 上进行基本的运算，建造器（makers）也是可以重复使用的。对于这种情况，定义一个新的  metric 只
-需要在 [`buildMetricInstances`](#loading-metrics) method（或者您自己对应的）中添加以下代码：
+大多数自定义度量都是在已经定义好的度量上进行基本的运算，建造器（makers）也是可以重复使用的。对于这种情况，定义一个新的度量只需要在
+[`buildMetricInstances`](#loading-metrics) 方法（method）里（或者您自己对应的当中）中添加以下代码：
 
 ```java
    new MetricInstance(NEW_METRIC_NAME, metricMaker, DEPENDENT, METRIC, NAMES)
@@ -167,20 +166,20 @@ private void addToMetricDictionary(MetricDictionary metricDictionary, List<Metri
 
 Fili 自带了一些已经定义好的 makers，详见 [Built-in Metrics](built-in-makers) 。
   
-### 自定义Makers ###
+### 自定义建造器 ###
 
-某些情况下 Fili 自带的建造器不足以满足您的业务需求，比如说数据计算不能用其他 metrics 搭配数学运算完成，或者你需要一个 Druid 不
-预先设定的数据类型。这个时候，您可以自定义自己的 maker。用 [`ArithmeticMaker`][arithmeticMaker] 举个例子，这个 maker 是用来进
-行后聚合数学运算的。
+某些情况下 Fili 自带的建造器不足以满足您的需求，比如说数据计算不能用其他度量搭配数学运算完成，或者你需要一个 Druid 不预先设定的
+数据类型。这个时候，您可以自定义自己的 maker。用 [`ArithmeticMaker`][arithmeticMaker] 举个例子，这个 maker 是用来进行后期
+聚合数学运算的。
 
-第一步，您需要确定 metric 类型：是一阶还是高阶。
+第一步，您需要确定度量类型：是一阶还是高阶。
 
-如果是基础，那么您需要 extend [`RawAggregationMetricMaker`][rawAggregationMetricMaker]。某些情况下，您还需要在 Druid 集群中
+如果是一阶，那么您需要 extend [`RawAggregationMetricMaker`][rawAggregationMetricMaker]。某些情况下，您还需要在 Druid 集群中
 添加一个 [custom Druid aggregation](http://druid.io/docs/0.8.1/development/modules.html)。
 
-如果是高级，那么就需要 extend [`MetricMaker`][metricMaker]。
+如果是高阶，那么就需要 extend [`MetricMaker`][metricMaker]。
 
-`ArithmeticMaker` 是一个高阶 metric，所以是 extends `MetricMaker`。
+`ArithmeticMaker` 是一个高阶度量，所以是 extends `MetricMaker`。
 
 自定义一个 Maker 主要是 override `makeInner` method，这个 method 定义了 `LogicalMetric` 的建造方法：
 
@@ -193,10 +192,10 @@ protected LogicalMetric makeInner(String metricName, List<String> dependentMetri
 
 `makeInner` 执行如下步骤：
 
-1. **合并依赖查询语句（Merge Dependent Queries）：** 如果存在至少一个依赖度量（dependent metric），那么将每个 dependent
-metric 的查询语句合并成一个查询语句。合并方法用 [`MetricMaker::getMergedQuery`][metricMaker] method。 
+1. **合并依赖查询语句（Merge Dependent Queries）：** 如果存在至少一个相关度量（dependent metric），那么将每个相关度量的
+查询语句合并成一个查询语句。合并方法用 [`MetricMaker::getMergedQuery`][metricMaker] method。 
 
-    `ArithmeticMaker` 依赖于至少两个其他 metrics ，所以 dependent metrics 需要合并：
+    `ArithmeticMaker` 依赖于至少两个其他度量 ，所以相关度量需要合并：
 
     ```java
     TemplateDruidQuery mergedQuery = getMergedQuery(dependentMetrics);
@@ -206,7 +205,7 @@ metric 的查询语句合并成一个查询语句。合并方法用 [`MetricMake
 
 2. **创建聚合器和后聚合器（Aggregators and Post-Aggregators）：** 搭建查询语句需要用到的聚合器和后聚合器。
 
-    [`ArithmeticMaker`][arithmeticMaker] 中，对应的查询语句包含 dependent metrics 聚合：每个 dependent metric 聚合的
+    [`ArithmeticMaker`][arithmeticMaker] 中，对应的查询语句包含相关度量聚合：每个相关度量聚合的
     [field accessor][druid post-aggregations] 和一个 [arithmetic post-aggregation][druid post-aggregations]。
 
     ```java
@@ -219,7 +218,7 @@ metric 的查询语句合并成一个查询语句。合并方法用 [`MetricMake
     PostAggregation arithmeticPostAgg = new ArithmeticPostAggregation(metricName, function, operands);
     ```
 
-3. **创建内层查询（inner query）：** 如果 metric 查询需要内含，则需要建造内层查询。
+3. **创建内层查询（inner query）：** 如果度量查询需要内含，则需要建造内层查询。
 
     `ArithmeticMaker` 使用 `getMergedQuery` method 搭建的内层查询。详见
     [`AggregationAverageMaker`][aggregationAverageMaker-docs]，那里有一个搭建内层查询的举例。
@@ -241,11 +240,11 @@ metric 的查询语句合并成一个查询语句。合并方法用 [`MetricMake
     );
     ``` 
 
-5. **创建映射（Mapper）：** 搭建一个 [映射](#mappers)。 如果 metric 不需要后 Druid 聚合，那就用
+5. **创建映射（Mapper）：** 搭建一个 [映射](#mappers)。 如果度量不需要后期 Druid 聚合，那就用
 [`NoOpResultSetMapper`][noOpResultSetMapper]。
 
-    `ArithmeticMaker` 使用 [`ColumnMapper`][columnMapper]，这个映射在搭建的时候被 injected，成为 `resultSetMapper`。所以
-    我们只需要建一个新的 `resultSetMapper`，配上需要被建造的 metric 名称：
+    `ArithmeticMaker` 使用 [`ColumnMapper`][columnMapper]，这个映射在搭建的时候被注入（injected），成为 `resultSetMapper`。
+    所以我们只需要建一个新的 `resultSetMapper`，配上需要被建造的度量名称：
     
     ```java
     ColumnMapper mapper = resultSetMapper.withColumnName(metricName);
@@ -259,14 +258,14 @@ metric 的查询语句合并成一个查询语句。合并方法用 [`MetricMake
 
 ### 映射（Mappers）###
 
-映射是 [`ResultSetMapper`][resultSetMapper] 的 subclass，用来对返回结果的每一行进行后期 Druid 处理。Fili 遍历每一个
+映射是 [`ResultSetMapper`][resultSetMapper] 的子类（subclass），用来对返回结果的每一行进行后期 Druid 处理。Fili 遍历每一个
 `LogicalMetric`，将每个的映射组合成一个 function chain，用这样的方式来组建后 Druid 的处理链。Druid 返回数据结果后，数据被送
-入 chain 的每一个单元，单元顺序由查询语句中的 metrics 定义顺序决定。
+入 chain 的每一个单元，单元顺序由查询语句中的度量定义顺序决定。
 x
 如果要定义一个 `Mapper`，您需要 override 两个 methods: `map(Result result, Schema schema)` 和 `map(Schema schema)`。第一
 个用来处理修改返回数据的某一行结果，第二个用来处理修改结果的 schema。
 
-为了保证数据处理正确处理每一种数据类型，[`Result`][result] class 提供了很多 methods ，用来提取某种数据类型的 metric 列数据：
+为了保证数据处理正确处理每一种数据类型，[`Result`][result] class 提供了很多 methods ，用来提取某种数据类型的度量的列数据：
 
 1. `getMetricValue`
 2. `getMetricValueAsNumber`
@@ -276,15 +275,15 @@ x
 
 第一个将数据返回成一个 `Object`。其他的将其转换成对应的合适数据类型（`getMetricValueAsNumber` 会转换成 `BigDecimal`）。
 
-[`NonNumericMetrics`][nonNumericMetrics] 包含了每一个非数值型 metric 的基本样例映射。
+[`NonNumericMetrics`][nonNumericMetrics] 包含了每一个非数值型度量的基本样例映射。
 
-[`SketchRoundUpMapper`][sketchRoundUpMapper] 则是一个数值型 metric 映射。
+[`SketchRoundUpMapper`][sketchRoundUpMapper] 则是一个数值型度量映射。
 
 [`RowNumMapper`][rowNumMapper] 是一个用于数据列相加的映射。
 
-### 高级 Metrics ###
+### 高级度量 ###
 
-高级（非数值型）metrics 的配置方法和自定义数值型 metrics 相同。Fili 支持所有原生 JSON 类型：
+高级（非数值型）度量的配置方法和自定义数值型度量相同。Fili 支持所有原生 JSON 类型：
 
 1. Numbers
 2. Strings
