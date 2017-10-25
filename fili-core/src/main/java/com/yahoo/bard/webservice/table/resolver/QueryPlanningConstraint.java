@@ -7,6 +7,7 @@ import com.yahoo.bard.webservice.data.metric.TemplateDruidQuery;
 import com.yahoo.bard.webservice.druid.model.query.Granularity;
 import com.yahoo.bard.webservice.table.LogicalTable;
 import com.yahoo.bard.webservice.web.DataApiRequest;
+import com.yahoo.bard.webservice.web.TablesApiRequest;
 
 import org.joda.time.Interval;
 
@@ -32,8 +33,8 @@ public class QueryPlanningConstraint extends DataSourceConstraint {
     /**
      * Constructor.
      *
-     * @param dataApiRequest Api request containing the constraints information.
-     * @param templateDruidQuery Query containing metric constraint information.
+     * @param dataApiRequest  <b>Data API request</b> containing the constraints information
+     * @param templateDruidQuery  Query containing metric constraint information
      */
     public QueryPlanningConstraint(
             @NotNull DataApiRequest dataApiRequest,
@@ -46,8 +47,29 @@ public class QueryPlanningConstraint extends DataSourceConstraint {
         this.logicalMetrics = Collections.unmodifiableSet(dataApiRequest.getLogicalMetrics());
         this.minimumGranularity = new RequestQueryGranularityResolver().apply(dataApiRequest, templateDruidQuery);
         this.requestGranularity = dataApiRequest.getGranularity();
-        this.logicalMetricNames = Collections.unmodifiableSet(this.logicalMetrics.stream()
-                .map(LogicalMetric::getName).collect(Collectors.toSet()));
+        this.logicalMetricNames = generateLogicalMetricNames();
+    }
+
+
+    /**
+     * Constructor.
+     *
+     * @param tablesApiRequest  <b>Tables API request</b> containing the constraints information.
+     */
+    public QueryPlanningConstraint(@NotNull TablesApiRequest tablesApiRequest) {
+        super(
+                tablesApiRequest.getDimensions(),
+                tablesApiRequest.getFilterDimensions(),
+                Collections.emptySet(),
+                Collections.emptySet(),
+                tablesApiRequest.getApiFilters()
+        );
+        this.logicalTable = tablesApiRequest.getTable();
+        this.intervals = Collections.unmodifiableSet(tablesApiRequest.getIntervals());
+        this.logicalMetrics = Collections.unmodifiableSet(tablesApiRequest.getLogicalMetrics());
+        this.minimumGranularity = tablesApiRequest.getGranularity();
+        this.requestGranularity = tablesApiRequest.getGranularity();
+        this.logicalMetricNames = generateLogicalMetricNames();
     }
 
     public LogicalTable getLogicalTable() {
@@ -102,6 +124,19 @@ public class QueryPlanningConstraint extends DataSourceConstraint {
                 minimumGranularity,
                 requestGranularity,
                 logicalMetricNames
+        );
+    }
+
+    /**
+     * Return names of all {@link #logicalMetrics}.
+     *
+     * @return names of all {@link #logicalMetrics}
+     */
+    private Set<String> generateLogicalMetricNames() {
+        return Collections.unmodifiableSet(
+                logicalMetrics.stream()
+                        .map(LogicalMetric::getName)
+                        .collect(Collectors.toSet())
         );
     }
 }
