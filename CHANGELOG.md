@@ -10,6 +10,8 @@ Current
 
 ### Added:
 
+- [Have Table Endpoint Filter Using QueryPlanningConstraint](https://github.com/yahoo/fili/pull/439)
+
 - [Refactor ApiRequest](https://github.com/yahoo/fili/pull/538)
     * Add inteface layer to each type of API request class. The types of API request under the refactor are
         - `TablesApiRequest`

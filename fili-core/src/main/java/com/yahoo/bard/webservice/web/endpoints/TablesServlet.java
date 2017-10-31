@@ -40,6 +40,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -569,7 +570,18 @@ public class TablesServlet extends EndpointServlet implements BardConfigResource
                         "availableIntervals",
                         getConstrainedLogicalTableAvailability(
                                 logicalTable,
-                                new QueryPlanningConstraint(tablesApiRequest)
+                                new QueryPlanningConstraint(
+                                        tablesApiRequest.getDimensions(),
+                                        tablesApiRequest.getFilterDimensions(),
+                                        Collections.emptySet(),
+                                        Collections.emptySet(),
+                                        tablesApiRequest.getApiFilters(),
+                                        tablesApiRequest.getTable(),
+                                        Collections.unmodifiableSet(tablesApiRequest.getIntervals()),
+                                        Collections.unmodifiableSet(tablesApiRequest.getLogicalMetrics()),
+                                        tablesApiRequest.getGranularity(),
+                                        tablesApiRequest.getGranularity()
+                                )
                         )
                 )
         ).collect(

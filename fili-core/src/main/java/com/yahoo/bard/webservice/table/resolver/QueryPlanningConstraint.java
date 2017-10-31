@@ -2,16 +2,19 @@
 // Licensed under the terms of the Apache license. Please see LICENSE.md file distributed with this work for terms.
 package com.yahoo.bard.webservice.table.resolver;
 
+import com.yahoo.bard.webservice.data.dimension.Dimension;
 import com.yahoo.bard.webservice.data.metric.LogicalMetric;
 import com.yahoo.bard.webservice.data.metric.TemplateDruidQuery;
 import com.yahoo.bard.webservice.druid.model.query.Granularity;
 import com.yahoo.bard.webservice.table.LogicalTable;
+import com.yahoo.bard.webservice.web.ApiFilter;
 import com.yahoo.bard.webservice.web.DataApiRequest;
 import com.yahoo.bard.webservice.web.TablesApiRequest;
 
 import org.joda.time.Interval;
 
 import java.util.Collections;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -33,6 +36,41 @@ public class QueryPlanningConstraint extends DataSourceConstraint {
     /**
      * Constructor.
      *
+     * @param requestDimensions  Dimensions contained in request
+     * @param filterDimensions  Filtered dimensions
+     * @param metricDimensions  Metric related dimensions
+     * @param metricNames  Names of metrics
+     * @param apiFilters  Map of dimension to its set of API filters
+     * @param logicalTable  The logical table requested by the request
+     * @param intervals  The interval constraint of the request
+     * @param logicalMetrics  The logical metrics requested by the request
+     * @param minimumGranularity  The finest granularity that must be satisfied by table granularity
+     * @param requestGranularity  The requested granularity of on the requested table
+     */
+    public QueryPlanningConstraint(
+            Set<Dimension> requestDimensions,
+            Set<Dimension> filterDimensions,
+            Set<Dimension> metricDimensions,
+            Set<String> metricNames,
+            Map<Dimension, Set<ApiFilter>> apiFilters,
+            LogicalTable logicalTable,
+            Set<Interval> intervals,
+            Set<LogicalMetric> logicalMetrics,
+            Granularity minimumGranularity,
+            Granularity requestGranularity
+    ) {
+        super(requestDimensions, filterDimensions, metricDimensions, metricNames, apiFilters);
+        this.logicalTable = logicalTable;
+        this.intervals = intervals;
+        this.logicalMetrics = logicalMetrics;
+        this.minimumGranularity = minimumGranularity;
+        this.requestGranularity = requestGranularity;
+        this.logicalMetricNames = generateLogicalMetricNames();
+    }
+
+    /**
+     * Constructor.
+     *
      * @param dataApiRequest  <b>Data API request</b> containing the constraints information
      * @param templateDruidQuery  Query containing metric constraint information
      */
@@ -49,7 +87,6 @@ public class QueryPlanningConstraint extends DataSourceConstraint {
         this.requestGranularity = dataApiRequest.getGranularity();
         this.logicalMetricNames = generateLogicalMetricNames();
     }
-
 
     /**
      * Constructor.
